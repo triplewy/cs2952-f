@@ -164,18 +164,29 @@ It would be interesting to see how datacenter architects could design specific c
 
 *Short Summary*
 
+This paper describes Google's approach to scheduling jobs across their fleet of servers. Some of the most notable challenges Google faced in this endeavor was increasing resource utilization, defining a scheduling algorithm that respects soft and hard constraints, and providing fault tolerance.
 
 *Observations*
 
+- **Architecture**
+  
+  For each Google cell, which consists of at least 10,000 machines, a cluster of Borgmasters are responsible for storing all the cluster config events. Each borgmaster consists of a persistent paxos store to ensure durability and high availability. A separate process called the scheduler frequently pools for new config events from the Borgmasters and updates the cluster state. The scheduler sends the cluster state back to the Borgmasters who then communicate with each Borglet. Each machine in the cell contains an agent called the Borglet that receives scheduling requests from the Borgmaster and reports back monitoring metrics via heartbeats. 
+
+- **Utilization**
+  
+  After much experimentation, the Borg developers chose *cell compaction* as their primary scheduling metric. This measures the smallest cell a scheduler places a certain workload in. The authors used **Fauxmaster**, a complete simulator of the Borgmaster, to test recorded production workloads numerous times to ensure consistent results. In their conclusion, they stated that a combination of best and worst fit gave the best results. 
 
 *Limitations*
 
+Borg is known for catering toward power users, and thus provides a wide array of options in their configuration language. For those who have experience with the system over numerous years, this API can provide the perfect scheduling constraints for long-running services and short-running jobs. However, this API impeded "casual" users from fully utilizing the system and most likely lead to inaccurate config policies from such users. 
 
 *Comaprison to Prior Papers*
 
+This is by far the biggest system we've covered so far and it's interesting to see its centralized architecture be able to scale to so many machines. Some of the earlier papers we read lauded the decentralized nature of microservices, but it seems that strong consistency and centralization is still much easier to comprehend, develop on top of, and is capable of scaling.
 
 *Future Directions*
 
+I'd love to learn more about the communication model between the borglets and the Borgmasters and the sharding mechanism of the Borgmasters. Google must have made numerous optimizations to scale such a system to tens of thousands of machines.
 
 ### [Synthesizing Cluster Management Code for Distributed Systems](http://ryzhyk.net/publications/weave_hotos19.pdf)
 
