@@ -1,4 +1,4 @@
-# CS2952-f Papers
+# CS2952-F Papers
 
 ### [The Hidden Dividends of Microservices](https://queue.acm.org/detail.cfm?id=2956643)
 
@@ -235,9 +235,12 @@ Service Fabric is Microsoft's cluster scheduler and service mesh solution. Unlik
 
 *Limitations*
 
-
+This paper touts its ability to support stateful applications, but who is responsible for moving storage disks when services get preempted? The paper also does not touch upon inter-datacenter clusters. Overall, fully decentralized distributed systems are incredibly difficult to program and the Microsoft team must have encountered numerous edge cases over the years when developing Service Fabric.
 
 *Comaprison to Prior Papers*
 
+Compared to Borg, Service Fabric employs a completely different approach to cluster management. The authors also mention the downsides of using lots of compute for the scheduling algorithm which disagrees with Weave's intention to generate the most optimal scheduling policy.
 
 *Future Directions*
+
+Microsoft employs many other datastore solutions such as Corfu, a distributed replicated log. Are these newer data-stores run on Service Fabric or do they have their own dedicated servers? Essentially, which core infrastructure services do not run on SF and why?
