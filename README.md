@@ -255,3 +255,89 @@ Compared to Borg, Service Fabric employs a completely different approach to clus
 *Future Directions*
 
 Microsoft employs many other datastore solutions such as Corfu, a distributed replicated log. Are these newer data-stores run on Service Fabric or do they have their own dedicated servers? Essentially, which core infrastructure services do not run on SF and why?
+
+### [Hey You, Get Off My Cloud: Exploring Information Leakage in Third-Party Compute Clouds](https://hovav.net/ucsd/dist/cloudsec.pdf)
+
+*Short Summary*
+
+For cloud compute, cloud providers such as AWS, Microsoft Azure, GCP, etc provide instant-access VMs. Multiple VMs are packed inside the same physical machines to increase server utilization. However, this poses a security threat where attackers can potentially obtain a VM placement on the same physical machine as their target and then use VM side-channel attacks to steal sensitive information. This paper describes first, the patterns and heuristics of VM placement in AWS, and second, the potential ways to perform side-channel attacks.
+
+*Observations*
+
+Since this paper was written more than 10 years ago, it's interesting to see whether cloud providers have taken measures to prevent the security threats proposed in this paper. With the addition of dedicated instances on EC2, AWS now gives the customer a choice of being placed on their own machine, isolated from other VMs. This echoes the paper's suggestions in the conclusion where the authors stated that the best solution was to give customers a choice upfront. 
+
+*Limitations*
+
+The major limitation of this paper is that keystroke-timing experiment was run on a local environment rather than directly on EC2. Furthermore, their experiment depended on the machines being completely idle other than the test code which does not reflect real-world behavior.  
+
+*Comaprison to Prior Papers*
+
+This is the first paper we've read so far that dives deep into security threats that have arisen from the recent popularity of cloud computing. 
+
+### [Performance Analysis of Cloud Applications](https://www.usenix.org/system/files/conference/nsdi18/nsdi18-ardelean.pdf)
+
+*Short Summary*
+
+This paper describes techniques to measure performance across hundreds or thousands of microservices in a real-world environment. Due to Google's unpredicatable and large request load, it's close to impossible to transfer performance results from a controlled test environment to the production environment. As a result, Google developed a bursty-coordinated kernel tracing framework to measure request latency across their service mesh.
+
+*Observations*
+
+- **Coordinated bursty tracing**
+  
+  Google partitions its users into tracing and non-tracing segments for services such as Gmail when performing coordinated bursty tracing. Due to Google's TrueTime technology, they can stitch together requests by simply using wall-clock time on each server. This allows Google to correlate latency across code layers.
+
+- **Vertical Context Injection**
+   
+  Interleaving requests via wall-clock time is not enough to fully capture entire request paths. So, Google utilized existing kernel system calls to inject high-level events into the kernel trace. This allows them to link high-level problems with low-level problems and pinpoint the exact location of latency or utilization issues.
+
+*Limitations*
+
+The biggest limitation to this paper is Google's reliance on TrueTime technology. It makes their coordinated bursty tracing technique useless for any other large scale company.
+
+*Comparison to Prior Papers*
+
+This is the first paper that we've read that discusses context propagation as a means to evaluate microservice performance.
+
+*Future Directions*
+
+How does paper relate to Dapper?
+
+*Clarification Questions*
+
+Doesn't this approach still require a distributed tracing framework in order to stitch together RPCs? Time, even at microsecond level, is most likely not enough to fully contextualize an entire request. Vertical context tracing only relates processes within a single machine.
+
+### [Overload Control for Scaling WeChat Microservices](https://www.cs.columbia.edu/~ruigu/papers/socc18-final100.pdf)
+
+*Short Summary*
+
+Tencent has developed a service-agnostic, decentralized, and cooperative load-shedding framework to effectively control overloaded servers. 
+
+*Observations*
+
+- **Overload Detection**
+  
+  Tencent utilizes per-server request queueing time as opposed to request latency or per-server CPU utilization to measure server load. This is a great metric since request latency for upstream services depends on downstream services, which makes it a non-independent variable. CPU utilization is also not useful since high CPU utilization does not necessarily equate to difficulties in servicing requests.
+
+- **Service Admission Control**
+  
+  Tencent uses Business-level and User-level priorities when rejecting requests at overloaded servers. Each request's business and user priorities are set at the entry service and subsequently propagated for the rest of its lifetime. This allows for more important requests to finish in high-load scenarios.
+
+- **Collaborative Admission Control**
+  
+  Even with fine-grained admission control, requests are still prone to be rejected midway since each server could be experiencing different load. To prevent this waste of network I/O, downstream services piggyback their admission control to upstream servers in their responses. This serves as a scalable method to propagate admission control across services. 
+
+*Limitations*
+
+Tencent does not discuss service failure or potential admission control inconsistencies for downstream services. For instance, if a service is load balanced across multiple servers, each server could have a different load. However, DAGOR does service-level collaborative admission control rather than server-level. Since routing is not discussed in the paper, we don't know how Tencent deals with these inconsistencies.
+
+*Comparison to Prior Papers*
+
+This paper relates to cluster schedulers in detecting varying resource utilization among machines. However, instead of scheduling containers across machines, DAGOR "schedules" requests across services.
+
+*Future Directions*
+
+How does this approach cooperate with cluster schedulers which can evict services based on heuristics such as CPU utilization, memory resources, etc. Is it worthwhile to migrate services on overloaded servers? 
+
+*Clarification Questions*
+
+How does each upstream server load balance to downstream services? 
