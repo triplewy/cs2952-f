@@ -341,3 +341,70 @@ How does this approach cooperate with cluster schedulers which can evict service
 *Clarification Questions*
 
 How does each upstream server load balance to downstream services? 
+
+### [Design and Implementation of Hyperupcalls](https://www.usenix.org/system/files/conference/atc18/atc18-amit.pdf)
+
+*Short Summary*
+
+VMWare has implemented an alternative to paravirtualization that allows guests VMs to respond to events from the host kernel via hyperupcalls. Hyperupcalls are verified programs written by guests that are stored in the hypervisor and executed on certain hypervisor events. To summarize, "Hyperupcalls \[allow\] the guest to expose its *logic* to the hypervisor, avoiding a context switch by enabling the hyperupcall to safely execute guest logic directly."
+
+*Observations*
+
+- **eBPF**
+  
+  The extended Berkely Packet Filter is used extensively to verify and compile guest program code (written in C) into native machine bytecode. VMWare also had to include additional features to safeguard memory aspects and translate addresses between guests and the hypervisor. 
+
+- **Use cases**
+  
+  One easy-to-comprehend use case for hyperupcalls is when the hypervisor frees memory from the guest. Information on freed memory pages in the guest is unavailable to the hypervisor without paravirtualization or hyperupcalls. According to VMWare's experiments, the hypervisor experienced up to 8x increase in performance under "memory ballooning" events when using hyperupcalls.
+
+
+*Limitations*
+
+This framework could introduce new potential security threats. Side-channel attacks come to mind if guests can infer some state from the hypervisor via hyperupcalls.
+
+*Comparison to Prior Papers*
+
+FINELAME also used eBPF extensively in their DDOS prevention framework. It seems like eBPF is quite an useful tool.
+
+*Future Directions*
+
+Can this cooperation between guests and the hypervisor increase VM performance over containers? Since hyperupcalls are precompiled, this should not have an impact on bootup time.
+
+*Clarification Questions*
+
+Is this framework mainly inteded for cloud providers to use?
+
+### [CloudTalk: Enabling Distributed Application Optimisations in the Public Cloud](http://nets.cs.pub.ro/~costin/files/cloudtalk.pdf)
+
+*Short Summary*
+
+Increase cloud application performance by understanding underlying cloud network topology. Because Cloud providers obscure topology to customers, distributed applications frequently communicate over clogged switches and hot paths. 
+
+*Observations*
+
+- **Monitoring Load**
+  
+  The CloudTalk server will query hundres or thousands of VMs for their current I/O load. This can be both network and disk load. The authors make two key contributions:
+  - 1. CloudTalk only needs to communicate with a random subset of VMs (when the cluster grows to thousands of nodes) to ensure optimal data transmission
+  - 2. Local monitoring is enough to ensure optimal paths since cloud providers such as AWS employ full-bisection topologies where bottlenecks only occur at the end-hosts links.
+
+- **Novel Dataflow Language**
+  
+  The purpose of the CloudTalk language is to model the network topology and provide optimal and fast answers to NP-Hard scheduling questions (e.g which worker node should receive work based on its current dataflows). The authors decided to employ a new language in CloudTalk to center around these network and disk dataflows.
+
+*Limitations*
+
+In a multi-tenant environment, network IO can fluctuate rapidly depending. CloudTalk suffers from stale information when IO state is communicated back to the CloudTalk server from other nodes in the cluster.
+
+*Comparison to Prior Papers*
+
+The authors employed similar techniques to the *Hey you, Get Off My Cloud* paper to discover VM placement across nodes on AWS EC2 (namely counting network hops via tracerouting). 
+
+*Future Directions*
+
+Most of the paper's experiments deal with computation frameworks such as Hadoop. In these scenarios, time of completion is not as crucial as online services with SLAs. Can CloudTalk be effectively used in a service mesh to provide increased network performance between microservices?
+
+*Clarification Questions*
+
+None
