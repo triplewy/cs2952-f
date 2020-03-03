@@ -445,20 +445,30 @@ None
 
 *Short Summary*
 
-
+This paper first describes different problems that distributed tracing intends to solve. It then describes basic building blocks of tracing frameworks. Lastly, it provides suggestions on which architectures are most suitable to solving the aformentioned problems.
 
 *Observations*
 
+- **Out-of-band vs. In-band Execution**
+  
+  Most tracing frameworks use out-of-band execution to process traces. This allows for storage of more metadata in traces and enables developers to debug performance degradation and service failures. The downside to out-of-band is that the system cannot perform automated monitoring tasks. In-band is designed to provide this "online" functionality to trace processing but requires that traces store a minimum amount of data.
+
+- **Causality**
+  
+  Preserving causality in traces is actually quite a difficult problem. Most frameworks choose to represent traces as either trees or spans since most only propagate a trace-ID across services. Using logical clocks to preserve forks, parallel, and joins requires more metadata. There is also submitter causality that is necessary for SLO monitoring and resource attribution. 
 
 *Limitations*
 
+In general, it appears that in-band tracing is still quite a work in progress since most production-ready frameworks use out-of-band processing. Thus, using traces for performance monitoring or meeting SLOs has not quite materialized.
 
 *Comparison to Prior Papers*
 
+This paper nicely summarizes some of the underlying aspects behind tracing frameworks. Namely, it discusses the pros and cons of these frameworks' design decisions which these papers often omit themselves.
 
 *Future Directions*
 
+A future direction is how to preserve more meaningful traces.
 
 *Clarification Questions*
 
-None
+Why is displaying traces as DAGs so difficult?
