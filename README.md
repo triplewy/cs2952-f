@@ -408,3 +408,57 @@ Most of the paper's experiments deal with computation frameworks such as Hadoop.
 *Clarification Questions*
 
 None
+
+### [Dapper, A Large-Scale Distributed Systems Tracing Infrastructure](https://static.googleusercontent.com/media/research.google.com/en//archive/papers/dapper-2010-1.pdf)
+
+*Short Summary*
+
+Dapper is an out-of-band tracing system that relies on underlying language RPC libraries and use of sampling to scale out to practically every service running at Google.
+
+*Observations*
+
+- **Out-of-band Processing**
+  
+  Dapper collects and processes traces in 3 steps. First, services write to local log files on the host machine. Second, a dapper dameon running on each machine constantly pulls from these files and sends the logs to collectors. These collectors are "out-of-band" in that they are not on the same machines as online services. Lastly, the collectors send logs to their corresponding Bigtable shard where traces can then be queried.
+
+- **Adaptive Sampling**
+  
+  Google employs an adaptive sampling scheme that is "parameterized not by a uniform sampling probability, but by a desired rate of sampled traces per unit time." This seems like a much better alternative to a constant trace rate across the entire cluster, which is the most common form of sampling across tracing systems. It also seems that these rates are being monitored at the gateways of such services since it would be useless to collect partial traces.
+
+*Limitations*
+
+Adaptive sampling seems much more complicated in practice since some downstream services may receive more samples than necessary, thus decreasing performance. However, sampling at each service, regardless of how upstream or downstream they are, leads to incomplete traces which is also unacceptable. 
+
+*Comparison to Prior Papers*
+
+This paper is mentioned in *Principled workflow-centric tracing of distributed systems* and is shown as an example of a tracing system that is best at identifying workflows w/ steady-state problems. In other words, Dapper is best at identifying performance degradations amongst services.
+
+*Future Directions*
+
+Further exploring better alternatives to sampling in distributed tracing would be fairly interesting. This similarly resembles WeChat's overloaded microservices architecture in their attempt to prioritize certain requests over others. The same could be done for tracing systems where some traces or requests are deemed more necessary to record.
+
+*Clarification Questions*
+
+None
+
+### [Principled Workflow-Centric Tracing of Distributed Systems](https://www.rajasambasivan.com/wp-content/uploads/2017/07/sambasivan-socc16.pdf)
+
+*Short Summary*
+
+
+
+*Observations*
+
+
+*Limitations*
+
+
+*Comparison to Prior Papers*
+
+
+*Future Directions*
+
+
+*Clarification Questions*
+
+None
