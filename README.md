@@ -472,3 +472,72 @@ A future direction is how to preserve more meaningful traces.
 *Clarification Questions*
 
 Why is displaying traces as DAGs so difficult?
+
+### [Advances and Challenges in Log Analysis](https://queue.acm.org/detail.cfm?id=2082137)
+
+*Short Summary*
+
+This paper identifies use cases for log storage in microservices and new advances in log analysis.  
+
+*Observations*
+
+- **Debugging**
+  
+  The most common use case for logs is debugging. Developers often tend to use logs for errors in their systems when trying to fix bugs after the fact. New advances have used machine-learning tools and statistical anomaly detection to detect more "interesting" logs from the vast amount being stored every day. This seems rather promising as logs are often a form of technical debt where new developers are unwilling to delete past logging statements. When the system is inundated with numerous logs, it can be hard to parse or reason about the logic of the system. 
+
+- **Performance**
+  
+  Logs are also often used to monitor performance of microservices. The main issue that arises under these scenarios is identifying time-causality between logs. Since the performance of downstream services can have an effect on upstream clusters, it is necessary to correlate performance changes between services to depict an accurate view of the system.
+
+- **Prediction**
+
+  Prediction is also a major use case for logs in which companies can identify common user behavior or test new features using logging. The business space for these advances has grown rapidly in recent years and will most likely continue to grow as streaming frameworks such as Kafka become more popular.
+
+*Limitations*
+
+The main limitations are preventing logging overhead from affecting actual services and storing logs. CPU and storage is not free so businesses must plan out how much storage and processing power is needed for logs.
+
+*Comparison to Prior Papers*
+
+This article provides use cases for logging and gives industry context to some of the monitoring and performance papers we read recently.
+
+*Future Directions*
+
+Machine learning is often mentioned in this article for log analysis. I would like to see the processing overhead for these algorithms and whether it is feasible for majority of companies that employ distributed logging.
+
+*Clarification Questions*
+
+None
+
+### [Sieve: Actionable Insights from Monitored Metrics in Distributed Systems](https://arxiv.org/pdf/1709.06686.pdf)
+
+*Short Summary*
+
+This paper uses data science techniques to reduce the dimensionality of performance metrics and identify performance dependencies between microservices.
+
+*Observations*
+
+- **Data Science**
+  
+  The authors utilize many data algorithms to reduce the collected metrics dimensionality space and identify causal relationships between services. For instance, they use Granger Causality tests to check if performance changes in service X affects metrics in service Y. The authors also use *k*-Shape clustering to find metrics that can represent many others. 
+
+- **Real world examples**
+  
+  The authors tested their system on two examples, Autoscaling and Root Cause Analysis. In the former experiment, it was shown that by using Sieve, one could autoscale based on more meaningful metrics such as request latency rather than just CPU or memory which are the only metrics cloud providers use to scale instances. As for Root Cause Analysis, the benefits were a bit less straightforward. It still required considerable developer intuition to identify root causes of performance degradation.
+  
+*Limitations*
+
+Sieve depends on offline load generation to develop the call graph and establish dependencies across services. Due to rapidly changing microservice environments, I don't see this approach being adopted heavily since developers would be skeptical of Sieve capturing relevant causal relationships as services are updated.
+
+*Comparison to Prior Papers*
+
+This paper is similar to some of the tracing papers in its emphasis on identifying causality between services. 
+
+*Future Directions*
+
+Can this system become online and make automatic anomaly detection within a service mesh?
+
+*Clarification Questions*
+
+None
+
