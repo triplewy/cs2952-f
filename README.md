@@ -541,3 +541,143 @@ Can this system become online and make automatic anomaly detection within a serv
 
 None
 
+### [Gremlin: Systematic Resilience Testing of Microservices](http://www.cs.unc.edu/~victor/papers/gremlin-icdcs.pdf)
+
+*Short Summary*
+
+Gremlin is a platform for testing microservices' request behavior in the face of failure.
+
+*Observations*
+
+- **Assertion Checker**
+  
+  Gremlin uses network proxies to log requests between microservices. Each request contains a unique requestID which will be mapped during log analysis to assert correct failure handling. Assertions are written using python recipes which are fairly easy to write. 
+
+- **Proactive & Lightweight**
+  
+  Gremlin is meant to be a lightweight framework that allows the operator to assert correct failure handling in seconds. Thus, unlike popular fault injection frameworks that are used to observe failures in production environments, this is meant to ensure correct behavior from services before deploying to production. I think their system is impressive in that it can coordinate experiments and analyze logs within milliseconds to correctly assert microservice behavior. 
+
+*Limitations*
+
+The main limitation is that this only tests for correct network behavior. The platform does not actually test if upstream microservices correctly handle downstream service failure in their internal logic. Essentially, recipes just serve as TODOs in terms of timeouts and circuit breakers.
+
+*Comparison to Prior Papers*
+
+This system is similar to Netflix's chaos platform in that they both utilize software components to intercept network requests and inject faults based on request parameters. However, Gremlin serves more as a prevention framework whereas Netflix's serves as an observability framework. Arguably, the assertion checker is the most important part of Gremlin
+
+*Future Directions*
+
+It would be nice if Gremlin provided default python recipes that test for appropriate circuit breaking and retry behavior in services. Also currently it requires the operator to input a call graph of the microservices so it would be an improvement to not require that. Also I wonder how the platform could be improved if it used distributed tracing?
+
+*Clarification Questions*
+
+- How could this platform be augmented using distributed tracing?
+- Can we test more than just incoming and outgoing requests?
+
+### [Netflix: Automating chaos experiments in production](https://arxiv.org/pdf/1905.04648.pdf)
+
+*Short Summary*
+
+Netflix uses ChAP, a platform that injects faults into production, to observe impact on users when services experience downtime.
+
+*Observations*
+
+- **Zuul**
+  
+  Netflix uses their edge proxy, *zuul*, to filter incoming requests into test and control groups. *Zuul* will randomly assign requests and notify Netflix's message broker system whenever it assigns a request into a test or control group.
+
+- **Fault Injection**
+  
+  Since netflix uses standard Java RPC clients across their microservices, they inject faults at the client RPC level. Thus, when a dowstream service is slated to have a fault, the calling RPC client is responsible in simulating the error. This allows for little network overhead when performing experiments.
+
+- **Stop safety mechanism** 
+  
+  Since these experiments occur on production servers, Netflix employs automatic stop safety measures to end experiments if things are going badly. They use error counts received from the user device to measure the rate of user visible errors.
+
+*Limitations*
+
+From their paper, the engineers of the platform stated that many teams did not adopt this service when first introduced. I can imagine why since all analysis must be done manually. Also, teams may be overwhelmed at the thought of thoroughly testing their services since there the number of possibilities is a combinatorial problem. Also, the frontend plays a major role here in that it must accurately report errors.
+
+*Comparison to Prior Papers*
+
+Netflix's approach is unique in that they perform their experiments directly in production, which many companies most likely would be very hesitant to do. They also rely on their standardized Java RPC libraries which resembles that of Google. Compared to Gremlin, while they both fall under the chaos experiment category, Netflix's ChAP serves a much different purpose in that it's mainly used for observability and debugging rather than testing.
+
+*Future Directions*
+
+Automatic experiment generation and analysis would be a great direction moving forward. Less work for application developers in understanding all fault scenarios and more feedback in how they could improve fault tolerance.
+
+*Clarification Questions*
+
+None
+
+### [Rx: Treating Bugs As Allergies-- ASafe Method to Survive Software Failures](https://www.cs.purdue.edu/homes/xyzhang/fall07/Papers/Rx-SOSP05.pdf)
+
+*Short Summary*
+
+Rx is a platform that changes the underlying OS to survive software failures.
+
+*Observations*
+
+- **Types of Errors**
+  
+  Rx checks for 3 types of errors, Memory-Management (e.g buffer overflow), Timing-based (e.g race conditions), and Request-based (e.g malicious requests). Based on the exception thrown in the kernel stack, Rx rolls back the program and uses its environment wrappers to iteratively try techniques to pass through the error. It also has a timeout on the retrying to make sure it is not slower than simply retrying the program. 
+
+- **Avoiding repeat errors**
+  
+  One major problem of simply restarting the application is that it doesn't avoid logical errors in the program. For example, double free-ing on a single threaded application would fail every time. Rx prevents this scenario since it has memory wrappers that can potentially delay frees.
+
+- **Low overhead**
+  
+  According to the authors, Rx can recover 21-53x faster than restarting the program. This gives the illusion from the client's perspective that the server is still online.
+
+*Limitations*
+
+A potential bottleneck for this system is coordinating checkpoints with the proxy. Under high load, the proxy buffer size may require a large amount of space since it must save all requests after the latest checkpoint. Since Rx cannot checkpoint frequently due to multi-threaded overhead, this may pose a scalability problem for this platform.
+
+*Comparison to Prior Papers*
+
+This paper is an improvement on failure-oblivious computing since it does not use speculative processing and provides developers useful information for future debugging.
+
+*Future Directions*
+
+This paper was published more than 15 years ago. Are the scalability questions I propose fixed with new hardware capabilities? Is there some way to incorporate eBPF into Rx?
+
+*Clarification Questions*
+
+None
+
+### [Enhancing Server Availability and Security Through Failure-Oblivious Computing](https://www.usenix.org/legacy/publications/library/proceedings/osdi04/tech/full_papers/rinard/rinard.pdf)
+
+*Short Summary*
+
+Failure-Oblivious computing dynamically detects memory corruption, namely buffer overflows, and manufactures values for invalid reads and writes.
+
+*Observations*
+
+- **Little overhead**
+  
+  Compared to unsafe C execution or safely-compiled C, the overhead of adding dynamic checkers to memory buffers and executing continuation code does not create noticeable overhead to the user
+
+- **Can improve throughput**
+  
+  In examples such as Apache Httpd, using non failure-oblivious computing is feasible since these programs use process pooling. Exiting out of a sub-process due to buffer overflow does not crash the entire application. However, failure-oblivious computing keep processes alive and thus can improve throughput. 
+
+- **Prevents repeated crash and restart**
+  
+  In examples such as Mail applications, once a message has a field that will trigger a buffer overflow error, it will continuously do so unless a user manually edits files on disk. Failure-oblivious computing does not crash the program and thus does not require manual intervention.
+
+*Limitations*
+
+Since failure-oblivious computing replaces the buffer with arbitrary values or simply truncates the response, it is possible that the application code can enter an infinite loop.
+
+*Comparison to Prior Papers*
+
+Rx improves upon the concept introduced in this paper by adding more memory errors to pass through.
+
+*Future Directions*
+
+Rust.
+
+*Clarification Questions*
+
+None
