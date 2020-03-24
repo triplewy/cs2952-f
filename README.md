@@ -681,3 +681,39 @@ Rust.
 *Clarification Questions*
 
 None
+
+### [Automatic Database Management System Tuning Through Large-Scale Maching Learning](https://www.cs.cmu.edu/~ggordon/van-aken-etal-parameters.pdf)
+
+*Short Summary*
+
+This paper utilizes supervised and unsupervised learning techniques to optimize database configuration for specific application workloads.
+
+*Observations*
+
+- **Unsupervised Learning**
+  
+  OtterTune uses unsupervised learning to reduce the dimensionality size of configuration parameters and identify important knobs. The authors use a combination of Factor Analysis techniques such as Lasso to measure the effect each parameter has on performance metrics such as latency or throughput. All of these methods required their to be thousands of trials run and millions of data points
+
+- **Supervised Learning**
+  
+  OtterTune relies heavily on their existing previous workloads and recommendations in the system to categorize new workloads and recommend the correct configuration. The authors use a technique called *Gaussian Process* to identify the appropriate workload type and recommend an optimized configuration. 
+
+- **Evaluation**
+  
+  OtterTune outperformed the default configurations and heuristic-based tuners for all DBMS' it tested. However, when compared to expert DBA's OtterTune was often only able to achieve similar performance since it allocated unreasonable configurations that would adversely affect metrics that OtterTune didn't measure, such as startup time. 
+
+*Limitations*
+
+The biggest limitation is the necesssity for previous configurations and trials loaded into OtterTune prior to performing real optimization. The authors described a lengthy process where they used multiple variations of benchmarks and performed over 30k trials on each DBMS to fully load OtterTune. It also seems the performance of OtterTune depends heavily on the thoroughness of this step. Regular users will in no way have time to do such setup.
+
+*Comparison to Prior Papers*
+
+This paper heavily resembles Sieve in its process of finding important metrics to measure in a very high-dimension space. K-means clustering appears to be a very useful technique for many problems in optimization.
+
+*Future Directions*
+
+The most important future direction for this paper is to reduce the high barrier in setting up OtterTune to working correctly. The authors mention many avenues of future work such as allocating sensible configurations that do not deteriorate data integrity or other important, non-measured aspects of the DBMS, but the pre-training aspect is a glaring limitation that needs to be addressed.
+
+*Clarification Questions*
+
+None
