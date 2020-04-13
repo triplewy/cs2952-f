@@ -717,3 +717,79 @@ The most important future direction for this paper is to reduce the high barrier
 *Clarification Questions*
 
 None
+
+### [Sagas](https://www.cs.cornell.edu/andru/cs711/2002fa/reading/sagas.pdf)
+
+*Short Summary*
+
+This paper proposes a mechanism to preserve Consistency and Durability for Long-Lived Transactions (LLT) without inducing system overhead.
+
+*Observations*
+
+- **Compensating Transactions**
+  
+  Compensating transactions are similar to redo logging in that they undo operations in the result of failure. Each forward transaction must be accompanied with a compensating transaction. Their purpose is to ensure overall consistency of the system
+
+- **Partial vs Total Recovery** 
+  
+  The paper states that the user can choose to either totally compensate a saga when one sub-transaction fails, or partially compensate then continue with execution. The latter approach requires checkpointing the state of sagas so that the system can simply compensate back to the checkpoint and execute forward. 
+
+- **Saving code**
+  
+  In the case of system crashes, the system must be able to re-run application code on restart to compensate failed transactions. This requires that application functions be attached to data objects. In a sense this resembles custom undo logging specified by the user.
+
+*Limitations*
+
+Preserving consistency is difficult when a saga DAG becomes large. As more sub-transactions are introduced, coordination between sub-transactions become difficult and the chances of failure increase. Also, in the case of failure in compensating-transactions, the user must manually intervene.
+
+*Comparison to Prior Papers*
+
+This paper provides a mechanism of preserving some guarantees for transactions that span multiple microservices.
+
+*Future Directions*
+
+One future direction of the paper is to discuss coordination between services to prevent wasted work in the case of a premature failure of downstream components waiting for results from upstream components.
+
+*Clarification Questions*
+
+Supporting forks and joins in sagas can prove difficult since each component must be knowledgable of all its upstream services in the saga. Is there a solution where the user does not need to provide an entire DAG of the saga each time they run it? This is relevant for microservices where cluster topology may change frequently.
+
+### [Aegean: Replication beyond the client-server model](https://web.eecs.umich.edu/~manosk/assets/papers/aegean-sosp19.pdf)
+
+*Short Summary*
+
+This paper extends client-server replication to microservices where requests span multiple services.
+
+*Observations*
+
+- **Problems with existing replication protocols**
+  
+  The paper addresses many replication protocols in the scenario where a client sends a request to a middle service, which then forwards it to a backend service. The middle service is responsible for replicating requests and guaranteeing fault tolerance of the client request. The gist of it is that when dealing with a replicated middle service, the backend may receive multiple duplicate requests. Ensuring that the backend implements caching, all middle replicas agree on some state, and returning responses to potentially multiple clients is not possible under current replication protocols. 
+
+- **Server-shim**
+  
+  Each instance of a replicated backend service is paired with a server-shim that takes care of request replication and caching. It assumes that the middle service is performing active replication and it must know the number of middle service instances ahead of time to calculate whether it has received a quorum for each request. 
+
+- **Durability of nested responses**
+  
+  Replicated middle services must ensure that requests are logged in the majority of replicas before forwarding the request to downstream services. This is to ensure durability of requests.
+
+- **Speculative execution**
+  
+  I didn't really understand this part but it seems that speculative is important for performance. Replicated services are allowed to execute requests in parallel and then compare if the resulting state is different across instances. If there is no difference, then the replicated service can send a nested request to its next destination. If there is a difference, servers must roll back to some agreed point.
+
+*Limitations*
+
+The Aegean library is limited to Java applications, I assume its architecture is that the user supplies their own state machine and Aegean takes care of all replication. 
+
+*Comparison to Prior Papers*
+
+This paper is essentially Sagas on steroids. It attempts to guarantee consistency of requests in a microservice environment where a request may involve multiple replicated, stateful services.
+
+*Future Directions*
+
+This paper relies heavily on speculative execution and request pipelining for increasing performance. This requires the user to supply undo operations for their entire state machine API which could be daunting. Is there a way to simplify this model and guarantee the durability and idempotency of requests?  
+
+*Clarification Questions*
+
+Does a replicated middle service need to implement Raft or is it fine for each instance to count replicas themselves and send a nested request once it receives acks from a majority of servers? Also do server shims coordinate or do they all forward a request to the backend once they receive a quorum for a request? 
