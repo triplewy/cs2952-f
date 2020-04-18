@@ -793,3 +793,36 @@ This paper relies heavily on speculative execution and request pipelining for in
 *Clarification Questions*
 
 Does a replicated middle service need to implement Raft or is it fine for each instance to count replicas themselves and send a nested request once it receives acks from a majority of servers? Also do server shims coordinate or do they all forward a request to the backend once they receive a quorum for a request? 
+
+### [BestConfig: Tapping the Performance Potential of Systems via Automatic Configuration Tuning](https://arxiv.org/pdf/1710.03439.pdf)
+
+*Short Summary*
+
+BestConfig is a system tat automatically finds the most optimal configuration given a resource limit. It is different than other auto-configuration systems in that it does not require a large number of user samples and is highly extensible.
+
+*Observations*
+
+- **Sampling**
+  
+  BestConfig's goal of sampling the configuration space is to achieve as wide a coverage as possible. However, given a resource limit on the number of tests that can be run, finding the global maximum in the paramter space in non-trivial. In this spirit, BestConfig combines two algorithms, DDS (dive and diverge sampling) and RBS (recursive bound and search) to search the parameter space and effectively optimize based on test results.
+
+- **Evaluation**
+  
+  Huawei were able to increase performance on various systems such as Tomcat and MySQL when using BestConfig. It's interesting to note that as the size of sample set increased, the tuning result also improved. This is most likely a result of the optimization and sampling algorithm since more samples allows for a greater coverage the paramteter space.
+
+*Limitations*
+
+One limitation the paper states is that the amount of samples needs to exceed the amount of parameters to test. The authors state that the user should provide useful configuration parameters that affect system performance, but this is non-trivial as well. Thus, it seems that this system is still reliant on a large amount of samples to get a reasonably tuned configuration.
+
+*Comparison to Prior Papers*
+
+This paper is very similar to the OtterTune paper but takes a different approach to identifying an optimimum configuration. OtterTune focuses on minimizing the paramter space using advanced clustering methods whereas BestConfig focuses on sampling a wide range in the parameter space and optimizing based on test results.
+
+*Future Directions*
+
+If BestConfig relies on a large amount of samples to actually be effective, could it use the samples it generated during the testing phase to augment the amount of samples?
+
+*Clarification Questions*
+
+- This paper was particularly difficult to understand. Could you explain how DDS and RBS work and provide some simple examples of how it can find an optimum point in the configuration space?
+
