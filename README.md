@@ -826,3 +826,64 @@ If BestConfig relies on a large amount of samples to actually be effective, coul
 
 - This paper was particularly difficult to understand. Could you explain how DDS and RBS work and provide some simple examples of how it can find an optimum point in the configuration space?
 
+### [CherryPick: Adaptively Unearthing the Best Cloud Configurations for Big Data Analytics](https://www.usenix.org/system/files/conference/nsdi17/nsdi17-alipourfard.pdf)
+
+*Short Summary*
+
+CherryPick usses Bayesian Optimization to pick the best cloud config for data analytic jobs.
+
+*Observations*
+
+- **Bayesian Optimizations is magic**
+  
+  The main contribution of this paper is its novel translation of AWS EC2 configurations into the bayesian space. After finding the correct equation to optimize, the authors state how the BO's search capabilities and confidence interval yield stable and consistent results as compared to coordinate descent and other statistical methods. Another advantage of BO is that it works with relatively few samples, which is crucial in keeping these cloud experiments cost-efficient.
+
+- **Evaluation**
+  
+  In terms of minimizing the cost of big-data analytic workloads in the cloud, CherryPick was successful in picking an optimal cloud configuration with high probability. This was because the Bayesian model correctly modeled the relationship between performance time and VM type, size, amount based on the workload. In particular, CherryPick was effective in quickly minimizing the confidence interval in promising regions of the configuration space.
+
+*Limitations*
+
+The particular limitation was how the authors needed to discretize several features, e.g label CPU, memory, and I/O as either fast or slow (binary), rather than use a contiguous range. This approach becomes problematic as the amount of cloud configurations only grows over time.
+
+*Comparison to Prior Papers*
+
+This paper is similar to OtterTune in that it uses Bayesian Optimization to find an optimal configuration for a specific problem space.
+
+*Future Directions*
+
+It would be cool if this paper could use this approach to find the most optimal application configuration and pair it with the most optimal cloud configuration.
+
+*Clarification Questions*
+
+Can you explain how Bayesian Optimization is non-parametric when the authors must turn variables such as CPU, memory, I/O, etc into binary options?
+
+### [SoftSKU: Optimizing Server Architectures for Microservice Diversity @Scale](https://research.fb.com/wp-content/uploads/2019/05/SoftSKU-Optimizing-Server-Architectures-for-Microservice-Diversity-@Scale.pdf)
+
+*Short Summary*
+
+SoftSKU is a system that configures CPU SKUs to provide better performance to microservices running in FB's datacenter.
+
+*Observations*
+
+- **Variety in CPU workload**
+  
+  When analyzing 7 key microservices in FB's infrastructure, the authors found that each one had a widely different CPU profile. To maximize performance, each microservice should be tailored to a specific CPU architecture but companies prefer to keep a limited set of hardware architectures. 
+
+- **A/B Testing**
+  
+  Due to the small configuration space, the authors are able to perform A/B Testing on each knob *individually* in production. This allows them to test how each knob affects the microservice independently of other knobs. All this is done automatically by their system which in the span of 5-10 hours is able to identify the most optimal soft-SKU configuration for a microservice.
+
+*Limitations*
+
+This system is built for microservices running on bare-metal architecture which seems uncommon nowadays. I wonder if the paper's findings still hold when introducing containerization or virtualization. 
+
+*Comparison to Prior Papers*
+
+This paper resembles that of an early paper that profiles the CPU performance of a microservice application. Both papers go into depth about cache misses, instruction misses, and other hardware aspects. 
+
+*Future Directions*
+
+Will soft-SKUs work with Bayesian Optimization?
+
+*Clarification Questions*
